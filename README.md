@@ -32,22 +32,22 @@ This is a Telegram bot built with Node.js and Telegraf framework that allows tea
    git clone https://github.com/your-repository-name.git
    cd your-repository-name
    ```
-2.**Install Dependencies:
+2.**Install Dependencies**:
 
 ```bash
 npm install
 ```
-3.**Environment Variables: Create a .env file in the project root and add the following:
+3.**Environment Variables: Create a .env file in the project root and add the following**:
 `env
 TELEGRAM_BOT=your_telegram_bot_token
 MONGO_URI=your_mongo_database_connection_string
 `
-4.**Start the MongoDB Server: Make sure your MongoDB server is running.
+4.**Start the MongoDB Server: Make sure your MongoDB server is running.**
 Run the Bot:
 ```bash
 node index.js
 ```
-5.**Start the Bot: On Telegram, find your bot using the username @Bit_Attendance_bot you set up and click "Start" to begin.
+5.**Start the Bot: On Telegram, find your bot using the username @Bit_Attendance_bot you set up and click "Start" to begin.**
 ## Login Process
 
 1. **Provide your email address and password**:  
