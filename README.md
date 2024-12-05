@@ -38,10 +38,10 @@ This is a Telegram bot built with Node.js and Telegraf framework that allows tea
 npm install
 ```
 3.**Environment Variables: Create a .env file in the project root and add the following**:
-`env
+```bash
 TELEGRAM_BOT=your_telegram_bot_token
 MONGO_URI=your_mongo_database_connection_string
-`
+```
 4.**Start the MongoDB Server: Make sure your MongoDB server is running.Run the Bot:**
 ```bash
 node index.js
