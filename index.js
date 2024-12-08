@@ -237,7 +237,7 @@ bot.on("callback_query", async (ctx) => {
       AttendanceList.map(async (STUDENT_ID)=>{
         try{
           const response = await axios.put(
-            "http:/localhost:4000/api/v1/Teacher/PutAttendance",
+            "http:/localhost:4000/api/v1/Teacher/PutAttendanceFromBot",
             {
               STUDENT_ID: Number(STUDENT_ID),
               SUBJECT_ID: Number(selectedSubject),
