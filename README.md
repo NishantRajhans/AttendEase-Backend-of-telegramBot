@@ -126,14 +126,15 @@ The bot communicates with the following backend API endpoints:
      - `Content-Type`: `application/json`
 ### Images
 - **Start**
-![Start](./assets/Screenshot 2024-12-09 213307.png)
+  ![Start](./assets/Screenshot%202024-12-09%20213307.png)
 - **Enter Email**
-![Email](./assets/Screenshot 2024-12-09 213619.png)
+  ![Email](./assets/Screenshot%202024-12-09%20213619.png)
 - **Enter Password**
-![Password](./assets/Screenshot 2024-12-09 213733.png)
+  ![Password](./assets/Screenshot%202024-12-09%20213733.png)
 - **Select Subject**
-![Subject](./assets/Screenshot 2024-12-09 213757.png)
+  ![Subject](./assets/Screenshot%202024-12-09%20213757.png)
 - **Select Present Students**
-![Students](./assets/Screenshot 2024-12-09 213842.png)
+  ![Students](./assets/Screenshot%202024-12-09%20213842.png)
 - **Click Submit**
-![Submit](./assets/Screenshot 2024-12-09 213859.png)
+  ![Submit](./assets/Screenshot%202024-12-09%20213859.png)
+
