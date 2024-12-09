@@ -160,7 +160,7 @@ bot.on("callback_query", async (ctx) => {
       const Token = Uservalue.Token;
       try {
         const response = await axios.get(
-          `http:/localhost:4000/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
+          `http://localhost:4000/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -237,7 +237,7 @@ bot.on("callback_query", async (ctx) => {
       AttendanceList.map(async (STUDENT_ID)=>{
         try{
           const response = await axios.put(
-            "http:/localhost:4000/api/v1/Teacher/PutAttendanceFromBot",
+            "http://localhost:4000/api/v1/Teacher/PutAttendance",
             {
               STUDENT_ID: Number(STUDENT_ID),
               SUBJECT_ID: Number(selectedSubject),

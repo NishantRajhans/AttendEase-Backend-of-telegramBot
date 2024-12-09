@@ -124,3 +124,16 @@ The bot communicates with the following backend API endpoints:
    - **Headers**:  
      - `Authorization`: Bearer `<Token>`  
      - `Content-Type`: `application/json`
+### Images
+- **Start**
+![Start](./assets/Screenshot 2024-12-09 213307.png)
+- **Enter Email**
+![Email](./assets/Screenshot 2024-12-09 213619.png)
+- **Enter Password**
+![Password](./assets/Screenshot 2024-12-09 213733.png)
+- **Select Subject**
+![Subject](./assets/Screenshot 2024-12-09 213757.png)
+- **Select Present Students**
+![Students](./assets/Screenshot 2024-12-09 213842.png)
+- **Click Submit**
+![Submit](./assets/Screenshot 2024-12-09 213859.png)
