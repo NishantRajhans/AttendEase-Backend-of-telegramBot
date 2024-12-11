@@ -5,6 +5,17 @@ import database from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
 import moment from "moment";
+import express from "express";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.get("/", (req, res) => {
+  res.send("Bot is running!");
+});
+
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 database();
