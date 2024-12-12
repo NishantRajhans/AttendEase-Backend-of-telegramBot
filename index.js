@@ -26,7 +26,8 @@ app.use(bot.webhookCallback("/bot"));
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  await bot.telegram.setWebhook(`${WEBHOOK_URL}/bot`);
+  await bot.telegram.deleteWebhook(); // Clear any existing webhooks
+  await bot.telegram.setWebhook(`${WEBHOOK_URL}/bot`); // Set the correct webhook
   console.log(`Webhook set to ${WEBHOOK_URL}/bot`);
 });
 
@@ -203,5 +204,3 @@ bot.on("callback_query", async (ctx) => {
   }
 });
 
-// Launch bot
-bot.launch().then(() => console.log("Bot is running!"));
