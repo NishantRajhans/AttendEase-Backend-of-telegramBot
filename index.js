@@ -9,11 +9,10 @@ dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 database()
 bot.start(async (ctx) => {
-  console.log(ctx)
   try {
     const TelegramId = ctx.from.id;
-    const Uservalue = await User.findOneAndDelete({ TelegramId: TelegramId });
-    console.log(TelegramId, Uservalue)
+    const UserValue=await User.findOne({TelegramId: TelegramId})
+    if(UserValue)await User.findOneAndDelete({ TelegramId: TelegramId });
       ctx.reply("User not found. Please Enter Your Email");
       await User.create({
         TelegramId: TelegramId,
