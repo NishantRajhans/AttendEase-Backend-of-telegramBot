@@ -19,6 +19,7 @@ bot.start(async (ctx) => {
         TelegramId: TelegramId,
       });
   } catch (err) {
+    console.log(err)
     await ctx.reply(
       "An error occurred while processing your request.Please try again from /start"
     );
