@@ -1,39 +1,29 @@
-import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
-import express from "express";
+import { message } from "telegraf/filters";
 import database from "./utils/database.js";
-import path from "path";
-
-// Load environment variables
+import User from "./models/User.js";
+import axios from "axios";
+import moment from "moment";
+import express from "express";
+import path from "path"
 dotenv.config();
-
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 const expressApp = express();
 const port = process.env.PORT || 3000;
-
 expressApp.use(express.static('static'));
 expressApp.use(express.json());
 expressApp.use(express.urlencoded({ extended: true }));
-
-// Connect database
 database();
-
-// Serve static index file
 expressApp.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// Set webhook for bot
 const webhookPath = `/bot${process.env.TELEGRAM_BOT}`;
-const domain = process.env.DOMAIN || "https://attendease-backend-of-telegrambot.onrender.com"; // Replace with your server's domain or public IP
+const domain = process.env.DOMAIN || "https://attendease-backend-of-telegrambot.onrender.com";
 bot.telegram.setWebhook(`${domain}${webhookPath}`);
 expressApp.use(bot.webhookCallback(webhookPath));
-
-// Listen on the configured port
 expressApp.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
 bot.start(async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
