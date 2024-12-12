@@ -11,7 +11,6 @@ const port = process.env.PORT || 3000;
 expressApp.use(express.static('static'))
 expressApp.use(express.json());
 require('dotenv').config();
-const { Telegraf } = require('telegraf');
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 expressApp.use(bot.webhookCallback('/secret-path'))
