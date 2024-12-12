@@ -13,7 +13,7 @@ expressApp.use(express.json());
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 expressApp.use(bot.webhookCallback('/secret-path'))
-bot.telegram.setWebhook('https://attendease-backend-of-telegrambot.onrender.com/secret-path')
+bot.telegram.setWebhook('https://attend-ease-backend-of-telegram-bot.vercel.app/secret-path')
 expressApp.listen(port, () => console.log(`Listening on ${port}`));
 database();
 bot.start(async (ctx) => {
