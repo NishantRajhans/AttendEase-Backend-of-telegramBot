@@ -1,37 +1,22 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { message } from "telegraf/filters";
-import database from "./utils/database.js";
+import {database} from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
 import moment from "moment";
-import express from "express";
-import path from "path"
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
-const expressApp = express();
-const port = process.env.PORT || 3000;
-expressApp.use(express.static('static'));
-expressApp.use(express.json());
-expressApp.use(express.urlencoded({ extended: true }));
-database();
-const webhookPath = `/bot${process.env.TELEGRAM_BOT}`;
-const domain = process.env.DOMAIN || "https://attendease-backend-of-telegrambot.onrender.com";
-bot.telegram.setWebhook(`${domain}${webhookPath}`);
-expressApp.use(bot.webhookCallback(webhookPath));
-expressApp.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+database()
 bot.start(async (ctx) => {
+  console.log(ctx)
   try {
     const TelegramId = ctx.from.id;
-    const Uservalue = await User.findOne({ TelegramId: TelegramId });
-    if (!Uservalue) {
+    const Uservalue = await User.findOneAndDelete({ TelegramId: TelegramId });
       ctx.reply("User not found. Please Enter Your Email");
       await User.create({
         TelegramId: TelegramId,
       });
-    }
   } catch (err) {
     await ctx.reply(
       "An error occurred while processing your request.Please try again from /start"
@@ -277,3 +262,11 @@ bot.on("callback_query", async (ctx) => {
     await ctx.reply("An error occurred while processing your selection.");
   }
 });
+bot
+  .launch()
+  .then(() => {
+    console.log("Bot is running!");
+  })
+  .catch((err) => {
+    console.error("Error launching the bot:", err);
+  });

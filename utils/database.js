@@ -1,15 +1,15 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-dotenv.config()
-const database = () => {
-	mongoose
-		.connect(process.env.MONGO_URI, {
-		})
-		.then(console.log(`DB Connection Success`))
-		.catch((err) => {
-			console.log(`DB Connection Failed`);
-			console.log(err);
-			process.exit(1);
-		});
+import mongoose from "mongoose";
+dotenv.config();
+const MONGODB_URL = process.env.MONGODB_URL;
+export const database = () => {
+  mongoose
+    .connect(MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log("Database connection established");
+    })
+    .catch((err) => {
+      console.log("Database connection error");
+      console.log(err);
+    });
 };
-export default database;
