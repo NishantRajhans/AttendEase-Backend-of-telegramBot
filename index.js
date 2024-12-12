@@ -1,22 +1,22 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { message } from "telegraf/filters";
-import {database} from "./utils/database.js";
+import { database } from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
-import express from "express";
 import moment from "moment";
+import {createServer} from "http";
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
-const expressApp = express();
 const port = process.env.PORT || 3000;
-expressApp.use(express.static('static'));
-expressApp.use(express.json());
-expressApp.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-database()
+database();
+const webhookDomain = process.env.WEBHOOK_DOMAIN; 
+async function startWebhook() {
+  createServer(await bot.createWebhook({ domain: webhookDomain })).listen(3000);
+}
+startWebhook();
 bot.start(async (ctx) => {
+  console.log(ctx)
   try {
     const TelegramId = ctx.from.id;
     const UserValue=await User.findOne({TelegramId: TelegramId})
@@ -33,6 +33,7 @@ bot.start(async (ctx) => {
   }
 });
 bot.on(message("text"), async (ctx) => {
+  console.log(ctx);
   try {
     const TelegramId = ctx.from.id;
     const Uservalue = await User.findOne({ TelegramId: TelegramId });
@@ -59,14 +60,16 @@ bot.on(message("text"), async (ctx) => {
         { new: true }
       );
       try {
+        console.log(UpdateUser.Email, UpdateUser.Password)
         const response = await axios.post(
-          `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/SignIn`,
+          `http://localhost:4000/api/v1/Teacher/SignIn`,
           {
             EMAIL: UpdateUser.Email,
             PASSWORD: UpdateUser.Password,
             ROLE: "Teacher",
           }
         );
+        console.log(response)
         if (response.data.success) {
           const Token = response.data.token;
           await User.findOneAndUpdate(
@@ -77,7 +80,7 @@ bot.on(message("text"), async (ctx) => {
           );
           try {
             const response = await axios.get(
-              "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchSubject",
+              "http://localhost:4000/api/v1/Teacher/FetchSubject",
               {
                 headers: {
                   Authorization: "Bearer " + Token,
@@ -117,38 +120,6 @@ bot.on(message("text"), async (ctx) => {
         });
         await ctx.reply(
           "An error occurred while signing in. Please try again from /start"
-        );
-      }
-    } else {
-      const TelegramId = ctx.from.id;
-      const Uservalue = await User.findOne({ TelegramId });
-      const Token = Uservalue.Token;
-      try {
-        const response = await axios.get(
-          "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchSubject",
-          {
-            headers: {
-              Authorization: "Bearer " + Token,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const subjectData = response.data.response;
-        const SubjectButon = subjectData.map((subject) => [
-          {
-            text: subject.SUBJECT_NAME,
-            callback_data: `subject ${subject.SUBJECT_ID}`,
-          },
-        ]);
-        await ctx.reply("Please select your subject.", {
-          reply_markup: {
-            inline_keyboard: SubjectButon,
-          },
-        });
-      } catch (error) {
-        await User.findOneAndDelete({TelegramId:TelegramId})
-        await ctx.reply(
-          "Error in fetching Subject.Please try again from /start"
         );
       }
     }
@@ -242,7 +213,7 @@ bot.on("callback_query", async (ctx) => {
       const AttendanceList=Uservalue.StudentPresentList;
       const currentDate=new Date();
       const formatDate=moment(currentDate).format("YYYY-MM-DD")
-      AttendanceList.map(async (STUDENT_ID)=>{
+      for (const STUDENT_ID of AttendanceList){
         try{
           const response = await axios.put(
             "http://localhost:4000/api/v1/Teacher/PutAttendance",
@@ -263,7 +234,7 @@ bot.on("callback_query", async (ctx) => {
           await User.findOneAndDelete({TelegramId:TelegramId})
           await ctx.reply("Error in putting attendance. Please take attendance again")
         }
-      })
+      }
       await User.findOneAndDelete({TelegramId:TelegramId})
       await ctx.reply("Successfully Update Attendance.To Take Attendance again Please /start again")
     }
@@ -271,11 +242,5 @@ bot.on("callback_query", async (ctx) => {
     await ctx.reply("An error occurred while processing your selection.");
   }
 });
-bot
-  .launch()
-  .then(() => {
-    console.log("Bot is running!");
-  })
-  .catch((err) => {
-    console.error("Error launching the bot:", err);
-  });
+  process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
