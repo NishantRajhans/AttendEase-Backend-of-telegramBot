@@ -5,17 +5,29 @@ import database from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
 import moment from "moment";
-import express from "express";
+const express = require('express')
 const expressApp = express()
+const axios = require("axios");
+const path = require("path")
 const port = process.env.PORT || 3000;
 expressApp.use(express.static('static'))
 expressApp.use(express.json());
+require('dotenv').config();
+const { Telegraf } = require('telegraf');
 dotenv.config();
-const bot = new Telegraf(process.env.TELEGRAM_BOT);
-expressApp.use(bot.webhookCallback('/secret-path'))
-bot.telegram.setWebhook('https://attend-ease-backend-of-telegram-bot.vercel.app/secret-path')
-expressApp.listen(port, () => console.log(`Listening on ${port}`));
+const bot = new Telegraf(process.env.TELEGRAM_BOT,{polling:true});
+expressApp.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
 database();
+bot
+  .launch()
+  .then(() => {
+    console.log("Bot is running!");
+  })
+  .catch((err) => {
+    console.error("Error launching the bot:", err);
+  });
 bot.start(async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
