@@ -1,3 +1,4 @@
+import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { message } from "telegraf/filters";
 import database from "./utils/database.js";
