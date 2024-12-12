@@ -4,9 +4,17 @@ import { message } from "telegraf/filters";
 import {database} from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
+import express from "express";
 import moment from "moment";
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
+const expressApp = express();
+const port = process.env.PORT || 3000;
+expressApp.use(express.static('static'));
+expressApp.use(express.json());
+expressApp.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 database()
 bot.start(async (ctx) => {
   try {
