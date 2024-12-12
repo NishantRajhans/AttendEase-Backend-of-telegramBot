@@ -15,9 +15,6 @@ expressApp.use(express.static('static'));
 expressApp.use(express.json());
 expressApp.use(express.urlencoded({ extended: true }));
 database();
-expressApp.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 const webhookPath = `/bot${process.env.TELEGRAM_BOT}`;
 const domain = process.env.DOMAIN || "https://attendease-backend-of-telegrambot.onrender.com";
 bot.telegram.setWebhook(`${domain}${webhookPath}`);
