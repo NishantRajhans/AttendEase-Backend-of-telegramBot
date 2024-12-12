@@ -5,18 +5,11 @@ import { database } from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
 import moment from "moment";
-import {createServer} from "http";
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
 const port = process.env.PORT || 3000;
 database();
-const webhookDomain = process.env.WEBHOOK_DOMAIN; 
-async function startWebhook() {
-  createServer(await bot.createWebhook({ domain: webhookDomain })).listen(3000);
-}
-startWebhook();
 bot.start(async (ctx) => {
-  console.log(ctx)
   try {
     const TelegramId = ctx.from.id;
     const UserValue=await User.findOne({TelegramId: TelegramId})
@@ -26,14 +19,12 @@ bot.start(async (ctx) => {
         TelegramId: TelegramId,
       });
   } catch (err) {
-    console.log(err)
     await ctx.reply(
       "An error occurred while processing your request.Please try again from /start"
     );
   }
 });
 bot.on(message("text"), async (ctx) => {
-  console.log(ctx);
   try {
     const TelegramId = ctx.from.id;
     const Uservalue = await User.findOne({ TelegramId: TelegramId });
@@ -60,7 +51,6 @@ bot.on(message("text"), async (ctx) => {
         { new: true }
       );
       try {
-        console.log(UpdateUser.Email, UpdateUser.Password)
         const response = await axios.post(
           `http://localhost:4000/api/v1/Teacher/SignIn`,
           {
@@ -69,7 +59,6 @@ bot.on(message("text"), async (ctx) => {
             ROLE: "Teacher",
           }
         );
-        console.log(response)
         if (response.data.success) {
           const Token = response.data.token;
           await User.findOneAndUpdate(
@@ -242,5 +231,6 @@ bot.on("callback_query", async (ctx) => {
     await ctx.reply("An error occurred while processing your selection.");
   }
 });
-  process.once('SIGINT', () => bot.stop('SIGINT'))
+bot.launch()
+process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
