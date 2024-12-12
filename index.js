@@ -13,6 +13,7 @@ bot.start(async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
     const Uservalue = await User.findOneAndDelete({ TelegramId: TelegramId });
+    console.log(TelegramId, Uservalue)
       ctx.reply("User not found. Please Enter Your Email");
       await User.create({
         TelegramId: TelegramId,
