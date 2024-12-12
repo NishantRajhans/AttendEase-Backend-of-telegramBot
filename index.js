@@ -25,6 +25,9 @@ bot
   .catch((err) => {
     console.error("Error launching the bot:", err);
   });
+  expressApp.listen((port)=>{
+    console.log("Listening on port " + port)
+  })
 bot.start(async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
