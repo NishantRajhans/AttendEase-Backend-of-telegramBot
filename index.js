@@ -5,8 +5,20 @@ import database from "./utils/database.js";
 import User from "./models/User.js";
 import axios from "axios";
 import moment from "moment";
+const express = require('express')
+const expressApp = express()
+const axios = require("axios");
+const path = require("path")
+const port = process.env.PORT || 3000;
+expressApp.use(express.static('static'))
+expressApp.use(express.json());
+require('dotenv').config();
+const { Telegraf } = require('telegraf');
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
+expressApp.use(bot.webhookCallback('/secret-path'))
+bot.telegram.setWebhook('https://attendease-backend-of-telegrambot.onrender.com/secret-path')
+expressApp.listen(port, () => console.log(`Listening on ${port}`));
 database();
 bot.start(async (ctx) => {
   try {
@@ -263,11 +275,3 @@ bot.on("callback_query", async (ctx) => {
     await ctx.reply("An error occurred while processing your selection.");
   }
 });
-bot
-  .launch()
-  .then(() => {
-    console.log("Bot is running!");
-  })
-  .catch((err) => {
-    console.error("Error launching the bot:", err);
-  });
