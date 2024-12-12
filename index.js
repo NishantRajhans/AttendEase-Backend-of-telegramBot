@@ -7,278 +7,201 @@ import axios from "axios";
 import moment from "moment";
 import express from "express";
 
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.get("/", (req, res) => {
-  res.send("Bot is running!");
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
+
+// Connect to Database
+database();
+
+// Initialize Telegram Bot
+const bot = new Telegraf(process.env.TELEGRAM_BOT);
+
+// Express setup for Webhook
+app.use(express.json());
+app.get("/", (req, res) => res.send("Bot is running!"));
+app.use(bot.webhookCallback("/bot"));
+
+app.listen(PORT, async () => {
+  console.log(`Server is running on port ${PORT}`);
+  await bot.telegram.setWebhook(`${WEBHOOK_URL}/bot`);
+  console.log(`Webhook set to ${WEBHOOK_URL}/bot`);
 });
 
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
-dotenv.config();
-const bot = new Telegraf(process.env.TELEGRAM_BOT);
-database();
+// Handle /start command
 bot.start(async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
-    const Uservalue = await User.findOne({ TelegramId: TelegramId });
-    if (!Uservalue) {
-      ctx.reply("User not found. Please Enter Your Email");
-      await User.create({
-        TelegramId: TelegramId,
-      });
+    let user = await User.findOne({ TelegramId });
+
+    if (!user) {
+      user = await User.create({ TelegramId });
+      ctx.reply("User not found. Please enter your email.");
     }
-  } catch (err) {
-    await ctx.reply(
-      "An error occurred while processing your request.Please try again from /start"
-    );
+  } catch (error) {
+    console.error("Error in /start:", error);
+    ctx.reply("An error occurred. Please try again.");
   }
 });
+
+// Handle text messages
 bot.on(message("text"), async (ctx) => {
   try {
     const TelegramId = ctx.from.id;
-    const Uservalue = await User.findOne({ TelegramId: TelegramId });
-    if (!Uservalue.Email) {
-      const Email = ctx.update.message.text;
-      await User.findOneAndUpdate(
-        {
-          TelegramId: TelegramId,
-        },
-        {
-          Email: Email,
-        }
-      );
-      await ctx.reply("Email saved. Please enter your password.");
-    } else if (!Uservalue.Password) {
-      const Password = ctx.update.message.text;
-      const UpdateUser = await User.findOneAndUpdate(
-        {
-          TelegramId: TelegramId,
-        },
-        {
-          Password: Password,
-        },
-        { new: true }
-      );
+    const user = await User.findOne({ TelegramId });
+
+    if (!user.Email) {
+      user.Email = ctx.message.text;
+      await user.save();
+      ctx.reply("Email saved. Please enter your password.");
+    } else if (!user.Password) {
+      user.Password = ctx.message.text;
+      await user.save();
+
+      // Sign-in API Call
       try {
-        const response = await axios.post(
-          `http:/localhost:4000/api/v1/Teacher/SignIn`,
-          {
-            EMAIL: UpdateUser.Email,
-            PASSWORD: UpdateUser.Password,
-            ROLE: "Teacher",
-          }
-        );
+        const response = await axios.post("http://localhost:4000/api/v1/Teacher/SignIn", {
+          EMAIL: user.Email,
+          PASSWORD: user.Password,
+          ROLE: "Teacher",
+        });
+
         if (response.data.success) {
-          const Token = response.data.token;
-          await User.findOneAndUpdate(
-            { TelegramId },
-            {
-              Token: Token,
-            }
-          );
-          try {
-            const response = await axios.get(
-              "http:/localhost:4000/api/v1/Teacher/FetchSubject",
-              {
-                headers: {
-                  Authorization: "Bearer " + Token,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            const subjectData = response.data.response;
-            const SubjectButon = subjectData.map((subject) => [
-              {
-                text: subject.SUBJECT_NAME,
-                callback_data: `subject ${subject.SUBJECT_ID}`,
-              },
-            ]);
-            await ctx.reply("Sign-in successful! Please select your subject.", {
-              reply_markup: {
-                inline_keyboard: SubjectButon,
-              },
-            });
-          } catch (error) {
-            await User.findOneAndDelete({TelegramId:TelegramId})
-            await ctx.reply(
-              "Error in fetching Subject.Please try again from /start"
-            );
-          }
-        } else {
-          await User.findOneAndDelete({
-            TelegramId: TelegramId,
-          });
-          await ctx.reply(
-            `${response.data.message} Please try again from /start`
-          );
-        }
-      } catch (err) {
-        await User.findOneAndDelete({
-          TelegramId: TelegramId,
-        });
-        await ctx.reply(
-          "An error occurred while signing in. Please try again from /start"
-        );
-      }
-    } else {
-      const TelegramId = ctx.from.id;
-      const Uservalue = await User.findOne({ TelegramId });
-      const Token = Uservalue.Token;
-      try {
-        const response = await axios.get(
-          "http:/localhost:4000/api/v1/Teacher/FetchSubject",
-          {
-            headers: {
-              Authorization: "Bearer " + Token,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const subjectData = response.data.response;
-        const SubjectButon = subjectData.map((subject) => [
-          {
-            text: subject.SUBJECT_NAME,
-            callback_data: `subject ${subject.SUBJECT_ID}`,
-          },
-        ]);
-        await ctx.reply("Please select your subject.", {
-          reply_markup: {
-            inline_keyboard: SubjectButon,
-          },
-        });
-      } catch (error) {
-        await User.findOneAndDelete({TelegramId:TelegramId})
-        await ctx.reply(
-          "Error in fetching Subject.Please try again from /start"
-        );
-      }
-    }
-  } catch (err) {
-    await ctx.reply("Error in LogIn.Please try again from /start");
-  }
-});
-bot.on("callback_query", async (ctx) => {
-  try {
-    const data = ctx.callbackQuery.data;
-    if (data.split(" ")[0] == "subject") {
-      const TelegramId = ctx.callbackQuery.from.id;
-      const Subject_id = data.split(" ")[1];
-      const Uservalue = await User.findOneAndUpdate({ TelegramId: TelegramId },{
-        CurrentSubjectId: Subject_id
-      },{new:true});
-      const Token = Uservalue.Token;
-      try {
-        const response = await axios.get(
-          `http://localhost:4000/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + Token,
-            },
-          }
-        );
-        if (response.data.success == true) {
-          const Students = response.data.response;
-          const StudentList = Students.map((student) => [
-            {
-              text: student.NAME,
-              callback_data: `student ${student.NAME} ${student.STUDENT_ID}`,
-            },
-          ]);
-          StudentList.push([
-            {
-              text: "Submit",
-              callback_data: "Submit Student List",
-            },
-          ]);
-          await ctx.reply("Select Students Those Are Present", {
-            reply_markup: {
-              inline_keyboard: StudentList,
-            },
-          });
-        } else {
-          await User.findOneAndDelete({TelegramId:TelegramId})
-          await ctx.reply("Something is wrong. Please try again from /start");
-        }
-      } catch (error) {
-        await User.findOneAndDelete({TelegramId:TelegramId})
-        await ctx.reply(
-          "Error in fetching Students.Please try again from /start"
-        );
-      }
-    } else if (data.split(" ")[0] == "student") {
-      const TelegramId = ctx.callbackQuery.from.id;
-      const Student_id = data.split(" ").at(-1);
-      const Uservalue = await User.findOne({ TelegramId: TelegramId });
-      if (Uservalue.StudentPresentList.includes(Student_id)) {
-        await User.findOneAndUpdate(
-          { TelegramId: TelegramId },
-          {
-            $pull: {
-              StudentPresentList: Student_id,
-            },
-          }
-        );
-        await ctx.reply(
-          `${data.split(" ")[1]} Remove from Present List of Student`
-        );
-      } else {
-        await User.findOneAndUpdate(
-          { TelegramId: TelegramId },
-          {
-            $push: {
-              StudentPresentList: Student_id,
-            },
-          }
-        );
-        await ctx.reply(
-          `${data.split(" ")[1]} Added in Present List of Student`
-        );
-      }
-    }else{
-      const TelegramId = ctx.callbackQuery.from.id;
-      const Uservalue = await User.findOne({ TelegramId: TelegramId });
-      const Token = Uservalue.Token;
-      const selectedSubject=Uservalue.CurrentSubjectId
-      const AttendanceList=Uservalue.StudentPresentList;
-      const currentDate=new Date();
-      const formatDate=moment(currentDate).format("YYYY-MM-DD")
-      AttendanceList.map(async (STUDENT_ID)=>{
-        try{
-          const response = await axios.put(
-            "http://localhost:4000/api/v1/Teacher/PutAttendance",
-            {
-              STUDENT_ID: Number(STUDENT_ID),
-              SUBJECT_ID: Number(selectedSubject),
-              PRESENT: true,
-              ATTENDANCE_DATE:formatDate,
-            },
+          user.Token = response.data.token;
+          await user.save();
+
+          // Fetch Subjects
+          const subjectsResponse = await axios.get(
+            "http://localhost:4000/api/v1/Teacher/FetchSubject",
             {
               headers: {
-                Authorization: "Bearer " + Token,
+                Authorization: `Bearer ${user.Token}`,
                 "Content-Type": "application/json",
               },
             }
           );
-        }catch(error){
-          await User.findOneAndDelete({TelegramId:TelegramId})
-          await ctx.reply("Error in putting attendance. Please take attendance again")
+
+          const subjects = subjectsResponse.data.response;
+          const subjectButtons = subjects.map((subject) => [
+            {
+              text: subject.SUBJECT_NAME,
+              callback_data: `subject ${subject.SUBJECT_ID}`,
+            },
+          ]);
+
+          ctx.reply("Sign-in successful! Please select your subject.", {
+            reply_markup: { inline_keyboard: subjectButtons },
+          });
+        } else {
+          await user.deleteOne();
+          ctx.reply("Invalid credentials. Please try again from /start.");
         }
-      })
-      await User.findOneAndDelete({TelegramId:TelegramId})
-      await ctx.reply("Successfully Update Attendance.To Take Attendance again Please /start again")
+      } catch (err) {
+        console.error("Error during sign-in:", err);
+        await user.deleteOne();
+        ctx.reply("Error during sign-in. Please try again from /start.");
+      }
+    } else {
+      ctx.reply("You're already signed in. Please select your subject.");
     }
-  } catch (error) {
-    await ctx.reply("An error occurred while processing your selection.");
+  } catch (err) {
+    console.error("Error in message handler:", err);
+    ctx.reply("An error occurred. Please try again.");
   }
 });
-bot
-  .launch()
-  .then(() => {
-    console.log("Bot is running!");
-  })
-  .catch((err) => {
-    console.error("Error launching the bot:", err);
-  });
+
+// Handle callback queries
+bot.on("callback_query", async (ctx) => {
+  try {
+    const TelegramId = ctx.callbackQuery.from.id;
+    const data = ctx.callbackQuery.data;
+    const user = await User.findOne({ TelegramId });
+
+    if (data.startsWith("subject")) {
+      const SubjectId = data.split(" ")[1];
+      user.CurrentSubjectId = SubjectId;
+      await user.save();
+
+      // Fetch Students
+      try {
+        const response = await axios.get(
+          `http://localhost:4000/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${SubjectId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.Token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const students = response.data.response;
+        const studentButtons = students.map((student) => [
+          {
+            text: student.NAME,
+            callback_data: `student ${student.NAME} ${student.STUDENT_ID}`,
+          },
+        ]);
+        studentButtons.push([
+          { text: "Submit", callback_data: "submit" },
+        ]);
+
+        ctx.reply("Select students who are present:", {
+          reply_markup: { inline_keyboard: studentButtons },
+        });
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        ctx.reply("Error fetching students. Please try again.");
+      }
+    } else if (data.startsWith("student")) {
+      const StudentId = data.split(" ").pop();
+
+      if (user.StudentPresentList.includes(StudentId)) {
+        user.StudentPresentList.pull(StudentId);
+        ctx.reply("Student removed from the present list.");
+      } else {
+        user.StudentPresentList.push(StudentId);
+        ctx.reply("Student added to the present list.");
+      }
+
+      await user.save();
+    } else if (data === "submit") {
+      try {
+        const AttendanceList = user.StudentPresentList;
+        const SubjectId = user.CurrentSubjectId;
+        const Date = moment().format("YYYY-MM-DD");
+
+        for (const StudentId of AttendanceList) {
+          await axios.put(
+            "http://localhost:4000/api/v1/Teacher/PutAttendance",
+            {
+              STUDENT_ID: Number(StudentId),
+              SUBJECT_ID: Number(SubjectId),
+              PRESENT: true,
+              ATTENDANCE_DATE: Date,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${user.Token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+
+        ctx.reply("Attendance submitted successfully! Please restart with /start if needed.");
+        await user.deleteOne();
+      } catch (error) {
+        console.error("Error submitting attendance:", error);
+        ctx.reply("Error submitting attendance. Please try again.");
+      }
+    }
+  } catch (error) {
+    console.error("Error handling callback query:", error);
+    ctx.reply("An error occurred while processing your request.");
+  }
+});
+
+// Launch bot
+bot.launch().then(() => console.log("Bot is running!"));
