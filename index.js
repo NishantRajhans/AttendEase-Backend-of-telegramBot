@@ -7,7 +7,6 @@ import axios from "axios";
 import moment from "moment";
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT);
-const port = process.env.PORT || 3000;
 database();
 bot.start(async (ctx) => {
   try {
@@ -231,6 +230,11 @@ bot.on("callback_query", async (ctx) => {
     await ctx.reply("An error occurred while processing your selection.");
   }
 });
-bot.launch()
+bot.launch({
+  webhook: {
+    domain: "https://tasty-cloths-retire.loca.lt",
+    port:5005,
+  },
+});
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
