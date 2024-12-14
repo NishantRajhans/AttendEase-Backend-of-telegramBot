@@ -232,8 +232,8 @@ bot.on("callback_query", async (ctx) => {
 });
 bot.launch({
   webhook: {
-    domain: "https://tasty-cloths-retire.loca.lt",
-    port:5005,
+    domain: process.env.DOMAIN,
+    port :process.env.PORT
   },
 });
 process.once('SIGINT', () => bot.stop('SIGINT'))
