@@ -17,6 +17,7 @@ const UserSchema=mongoose.Schema({
         type:Number
     },
     StudentPresentList:[],
+    StudentList:[],
     Token:{
         type:String
     },

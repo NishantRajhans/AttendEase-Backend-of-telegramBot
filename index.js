@@ -1,4 +1,4 @@
-import { Telegraf } from "telegraf";
+import { Telegraf, Telegram } from "telegraf";
 import dotenv from "dotenv";
 import { message } from "telegraf/filters";
 import { database } from "./utils/database.js";
@@ -53,9 +53,9 @@ bot.on(message("text"), async (ctx) => {
         const response = await axios.post(
           `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/SignIn`,
           {
-            EMAIL: UpdateUser.Email,
-            PASSWORD: UpdateUser.Password,
-            ROLE: "Teacher",
+            email: UpdateUser.Email,
+            password: UpdateUser.Password,
+            role: "Teacher",
           }
         );
         if (response.data.success) {
@@ -80,7 +80,7 @@ bot.on(message("text"), async (ctx) => {
             const SubjectButon = subjectData.map((subject) => [
               {
                 text: subject.SUBJECT_NAME,
-                callback_data: `subject ${subject.SUBJECT_ID}`,
+                callback_data: `subject ${subject.subjectId}`,
               },
             ]);
             await ctx.reply("Sign-in successful! Please select your subject.", {
@@ -127,7 +127,7 @@ bot.on("callback_query", async (ctx) => {
       const Token = Uservalue.Token;
       try {
         const response = await axios.get(
-          `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
+          `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchStudentOfParticularSubject?subjectId=${Subject_id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -137,10 +137,11 @@ bot.on("callback_query", async (ctx) => {
         );
         if (response.data.success == true) {
           const Students = response.data.response;
-          const StudentList = Students.map((student) => [
+          await Uservalue.findOneAndUpdate({TelegramId:TelegramId},{$set:{StudentList:Students}})
+          const StudentList = Students.map(async(student) => [
             {
               text: student.NAME,
-              callback_data: `student ${student.NAME} ${student.STUDENT_ID}`,
+              callback_data: `student ${student.name} ${student.studentId}`,
             },
           ]);
           StudentList.push([
@@ -199,17 +200,18 @@ bot.on("callback_query", async (ctx) => {
       const Token = Uservalue.Token;
       const selectedSubject=Uservalue.CurrentSubjectId
       const AttendanceList=Uservalue.StudentPresentList;
+      const StudentList=Uservalue.StudentList;
       const currentDate=new Date();
       const formatDate=moment(currentDate).format("YYYY-MM-DD")
-      for (const STUDENT_ID of AttendanceList){
+      for (const studentId of StudentList ){
         try{
           const response = await axios.put(
             "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/PutAttendance",
             {
-              STUDENT_ID: Number(STUDENT_ID),
-              SUBJECT_ID: Number(selectedSubject),
-              PRESENT: true,
-              ATTENDANCE_DATE:formatDate,
+              studentId: Number(studentId),
+              pubjectId: Number(selectedSubject),
+              present: AttendanceList.findOne(studentId)?true:false,
+              attendanceDate:formatDate,
             },
             {
               headers: {
