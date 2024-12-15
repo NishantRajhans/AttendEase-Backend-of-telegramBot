@@ -79,7 +79,7 @@ bot.on(message("text"), async (ctx) => {
             const subjectData = response.data.response;
             const SubjectButon = subjectData.map((subject) => [
               {
-                text: subject.SUBJECT_NAME,
+                text: subject.subjectName,
                 callback_data: `subject ${subject.subjectId}`,
               },
             ]);
