@@ -51,7 +51,7 @@ bot.on(message("text"), async (ctx) => {
       );
       try {
         const response = await axios.post(
-          `http://localhost:4000/api/v1/Teacher/SignIn`,
+          `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/SignIn`,
           {
             EMAIL: UpdateUser.Email,
             PASSWORD: UpdateUser.Password,
@@ -68,7 +68,7 @@ bot.on(message("text"), async (ctx) => {
           );
           try {
             const response = await axios.get(
-              "http://localhost:4000/api/v1/Teacher/FetchSubject",
+              "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchSubject",
               {
                 headers: {
                   Authorization: "Bearer " + Token,
@@ -127,7 +127,7 @@ bot.on("callback_query", async (ctx) => {
       const Token = Uservalue.Token;
       try {
         const response = await axios.get(
-          `http://localhost:4000/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
+          `https://attendease-backend-jom0.onrender.com/api/v1/Teacher/FetchStudentOfParticularSubject?SUBJECT_ID=${Subject_id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -204,7 +204,7 @@ bot.on("callback_query", async (ctx) => {
       for (const STUDENT_ID of AttendanceList){
         try{
           const response = await axios.put(
-            "http://localhost:4000/api/v1/Teacher/PutAttendance",
+            "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/PutAttendance",
             {
               STUDENT_ID: Number(STUDENT_ID),
               SUBJECT_ID: Number(selectedSubject),
