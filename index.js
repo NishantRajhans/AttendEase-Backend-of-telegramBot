@@ -204,6 +204,7 @@ bot.on("callback_query", async (ctx) => {
       const StudentList=Uservalue.StudentList;
       const currentDate=new Date();
       const formatDate=moment(currentDate).format("YYYY-MM-DD")
+      console.log(StudentList)
       for (const studentId of StudentList ){
         try{
           console.log(studentId,subjectId)
