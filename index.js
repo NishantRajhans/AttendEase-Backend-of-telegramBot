@@ -210,8 +210,8 @@ bot.on("callback_query", async (ctx) => {
             "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/PutAttendance",
             {
               studentId: Number(studentId),
-              pubjectId: Number(selectedSubject),
-              present: AttendanceList.findOne(studentId)?true:false,
+              subjectId: Number(selectedSubject),
+              present: AttendanceList.includes(studentId),
               attendanceDate:formatDate,
             },
             {
