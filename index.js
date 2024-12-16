@@ -140,7 +140,7 @@ bot.on("callback_query", async (ctx) => {
           await Uservalue.findOneAndUpdate({TelegramId:TelegramId},{$set:{StudentList:Students}})
           const StudentList = Students.map(async(student) => [
             {
-              text: student.NAME,
+              text: student.name,
               callback_data: `student ${student.name} ${student.studentId}`,
             },
           ]);
