@@ -223,6 +223,7 @@ bot.on("callback_query", async (ctx) => {
           );
         }catch(error){
           await User.findOneAndDelete({TelegramId:TelegramId})
+          console.log(error);
           await ctx.reply("Error in putting attendance. Please take attendance again")
         }
       }
