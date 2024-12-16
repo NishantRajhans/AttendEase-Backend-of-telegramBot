@@ -206,6 +206,7 @@ bot.on("callback_query", async (ctx) => {
       const formatDate=moment(currentDate).format("YYYY-MM-DD")
       for (const studentId of StudentList ){
         try{
+          console.log(studentId,subjectId)
           const response = await axios.put(
             "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/PutAttendance",
             {
