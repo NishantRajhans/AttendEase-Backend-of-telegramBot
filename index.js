@@ -204,10 +204,9 @@ bot.on("callback_query", async (ctx) => {
       const StudentList=Uservalue.StudentList;
       const currentDate=new Date();
       const formatDate=moment(currentDate).format("YYYY-MM-DD")
-      console.log(StudentList)
-      for (const studentId of StudentList ){
+      for (const student of StudentList ){
         try{
-          console.log(studentId,subjectId)
+          const { studentId } = student;
           const response = await axios.put(
             "https://attendease-backend-jom0.onrender.com/api/v1/Teacher/PutAttendance",
             {
