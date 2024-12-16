@@ -137,7 +137,7 @@ bot.on("callback_query", async (ctx) => {
         );
         if (response.data.success == true) {
           const Students = response.data.response;
-          await Uservalue.findOneAndUpdate({TelegramId:TelegramId},{$set:{StudentList:Students}})
+          await User.findOneAndUpdate({TelegramId:TelegramId},{$set:{StudentList:Students}})
           const StudentList = Students.map(async(student) => [
             {
               text: student.name,
