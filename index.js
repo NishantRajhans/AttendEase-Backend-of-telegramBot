@@ -160,6 +160,7 @@ bot.on("callback_query", async (ctx) => {
           await ctx.reply("Something is wrong. Please try again from /start");
         }
       } catch (error) {
+        console.log(error);
         await User.findOneAndDelete({TelegramId:TelegramId})
         await ctx.reply(
           "Error in fetching Students.Please try again from /start"
